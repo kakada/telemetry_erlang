@@ -1,0 +1,12 @@
+{application, telemetry,
+ [
+  {description, "Erlang client for Instedd Telemetry"},
+  {vsn, "1"},
+  {modules, [
+             telemetry
+            ]},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {mod, {telemetry_app, []}},
+  {env, []}
+ ]}.

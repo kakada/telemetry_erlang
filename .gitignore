@@ -1,0 +1,17 @@
+# vim
+*.swp
+
+# sublime
+*.sublime-project
+*.sublime-workspace
+
+**/ebin/**
+log/*.log*
+.eunit/
+erl_crash.dump
+**/deps/**
+rel/**
+*.srl
+/tmp/**
+**/.rebar/**
+.deps_plt
