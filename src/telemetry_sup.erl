@@ -16,11 +16,19 @@
 %% ===================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+  ServerSpec = {
+    telemetry_srv,
+    {telemetry_srv, start_link, []},
+    permanent,
+    5000,
+    worker,
+    [telemetry_srv]
+  },
+  {ok, { {one_for_one, 5, 10}, [ServerSpec]} }.

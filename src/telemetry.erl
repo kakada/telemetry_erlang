@@ -2,16 +2,9 @@
 
 %% telemetry: telemetry library's entry point.
 
--export([my_func/0]).
+-export([report/2]).
 
 %% API
 
-my_func() ->
-    ok().
-
-%% Internals
-
-ok() ->
-    ok.
-
-%% End of Module.
+report(Command, Args) ->
+  gen_server:cast(telemetry_srv, {report, {Command, Args}}).
