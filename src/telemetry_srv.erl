@@ -1,7 +1,7 @@
 -module(telemetry_srv).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
-
+-record(state, {sock, connected}).
 %% ------------------------------------------------------------------
 %% API Function Exports
 %% ------------------------------------------------------------------
@@ -26,25 +26,59 @@ start_link() ->
 %% gen_server Function Definitions
 %% ------------------------------------------------------------------
 
-init(Args) ->
-    {ok, Args}.
+init([]) ->
+  gen_server:cast(?SERVER, connect),
+  {ok, #state{connected = false}}.
 
 handle_call(_Request, _From, State) ->
-    {reply, ok, State}.
+  {reply, ok, State}.
 
-handle_cast({report,{_Command, _Args}}, State) ->
-  {noreply, State}.
+handle_cast({report,{_Command, _Args}}, State = #state{connected = false}) ->
+  % TO-DO: buffer commands until connection is available?
+  {noreply, State};
+
+handle_cast({report,{Command, Args}}, State = #state{connected = true, sock = Socket}) ->
+  ok = gen_tcp:send(Socket, serialize_command(Command, Args)),
+  ok = gen_tcp:send(Socket, "\n"),
+  {noreply, State};
+
+handle_cast(connect, State = #state{connected = false}) ->
+  Host = "localhost",
+  Port = 1234,
+
+  case gen_tcp:connect(Host, Port, [binary, {delay_send, false}, {nodelay, true}, {buffer, 5}, {active, true}]) of
+    {ok, Sock} ->
+      {noreply, #state{sock = Sock, connected = true}};
+    _ ->
+      {ok, _} = timer:apply_after(1000, gen_server, cast, [?SERVER, connect]),
+      {noreply, State}
+  end.
+
+handle_info({tcp_closed, _}, _State) ->
+  gen_server:cast(?SERVER, connect),
+  {noreply, #state{connected = false}};
 
 handle_info(_Info, State) ->
-    {noreply, State}.
+  {noreply, State}.
 
-terminate(_Reason, _State) ->
-    ok.
+terminate(_Reason, #state{connected = false}) ->
+  ok;
+
+terminate(_Reason, #state{connected = true, sock = Socket}) ->
+  gen_tcp:close(Socket),
+  ok.
 
 code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+  {ok, State}.
 
 %% ------------------------------------------------------------------
 %% Internal Function Definitions
 %% ------------------------------------------------------------------
 
+serialize_command(Command, Args) ->
+  Json = {[
+    {command, Command},
+    {arguments, Args}
+  ]},
+
+  jiffy:encode(Json).
