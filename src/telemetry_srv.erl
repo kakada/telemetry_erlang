@@ -1,7 +1,6 @@
 -module(telemetry_srv).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
--define(QUEUE_BOUND, 10).
 -record(state, {sock, connected, queue, queue_size}).
 %% ------------------------------------------------------------------
 %% API Function Exports
@@ -35,7 +34,7 @@ handle_call(_Request, _From, State) ->
   {reply, ok, State}.
 
 handle_cast({report, R}, State = #state{connected = false, queue = Q0, queue_size = S0}) ->
-  {Q1, S1} = case S0 == ?QUEUE_BOUND of
+  {Q1, S1} = case S0 == telemetry:buffer_size() of
                true  ->
                  {queue:in(R, queue:drop(Q0)), S0};
                false ->
@@ -49,10 +48,8 @@ handle_cast({report,{Command, Args}}, State = #state{connected = true, sock = So
   {noreply, State};
 
 handle_cast(connect, State = #state{connected = false, queue = Queue}) ->
-  Host = "localhost",
-  Port = 1234,
-
-  case gen_tcp:connect(Host, Port, [binary, {delay_send, false}, {nodelay, true}, {buffer, 5}, {active, true}]) of
+  SocketConfig = [binary, {delay_send, false}, {nodelay, true}, {buffer, 5}, {active, true}],
+  case gen_tcp:connect(telemetry:agent_host(), telemetry:agent_port(), SocketConfig) of
     {ok, Sock} ->
       clear_queue(Queue),
       {noreply, State#state{sock = Sock, connected = true, queue = queue:new(), queue_size = 0}};
