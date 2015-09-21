@@ -23,12 +23,22 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-  ServerSpec = {
-    telemetry_srv,
-    {telemetry_srv, start_link, []},
-    permanent,
-    5000,
-    worker,
-    [telemetry_srv]
-  },
-  {ok, { {one_for_one, 5, 10}, [ServerSpec]} }.
+  ServerSpecs = [
+    {
+      telemetry_srv,
+      {telemetry_srv, start_link, []},
+      permanent,
+      5000,
+      worker,
+      [telemetry_srv]
+    },
+    {
+      buffer_srv,
+      {buffer_srv, start_link, []},
+      permanent,
+      5000,
+      worker,
+      [buffer_srv]
+    }
+  ],
+  {ok, { {one_for_one, 5, 10}, ServerSpecs} }.
