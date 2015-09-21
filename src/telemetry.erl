@@ -1,6 +1,6 @@
 -module(telemetry).
 
-%% telemetry: telemetry library's entry point.
+%% telemetry: library's API.
 
 -export([report/2]).
 -export([
@@ -12,7 +12,7 @@
 %% API
 
 report(Command, Args) ->
-  gen_server:cast(telemetry_srv, {report, {Command, Args}}).
+  gen_server:cast(agent_connection, {send, {Command, Args}}).
 
 agent_host() ->
   application:get_env(telemetry, agent_host, "127.0.0.1").

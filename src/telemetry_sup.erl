@@ -25,20 +25,20 @@ start_link() ->
 init([]) ->
   ServerSpecs = [
     {
-      telemetry_srv,
-      {telemetry_srv, start_link, []},
+      agent_connection,
+      {agent_connection, start_link, []},
       permanent,
       5000,
       worker,
-      [telemetry_srv]
+      [agent_connection]
     },
     {
-      buffer_srv,
-      {buffer_srv, start_link, []},
+      buffer,
+      {buffer, start_link, []},
       permanent,
       5000,
       worker,
-      [buffer_srv]
+      [buffer]
     }
   ],
   {ok, { {one_for_one, 5, 10}, ServerSpecs} }.

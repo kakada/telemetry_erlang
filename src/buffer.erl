@@ -1,4 +1,4 @@
--module(buffer_srv).
+-module(buffer).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {queue, queue_size}).
@@ -7,7 +7,7 @@
 %% ------------------------------------------------------------------
 
 -export([start_link/0]).
--export([buffer/1, retry_all/0]).
+-export([add/1, retry_all/0]).
 
 %% ------------------------------------------------------------------
 %% gen_server Function Exports
@@ -23,7 +23,7 @@
 start_link() ->
   gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-buffer(Item) ->
+add(Item) ->
   gen_server:call(?SERVER, {add, Item}).
 
 retry_all() ->
@@ -70,6 +70,6 @@ clear_queue(Q) ->
     true  -> ok;
     false ->
       {{value, Item}, Q1} = queue:out(Q),
-      gen_server:cast(telemetry_srv, {report, Item}),
+      gen_server:cast(agent_connection, {send, Item}),
       clear_queue(Q1)
   end.

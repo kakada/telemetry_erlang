@@ -1,4 +1,4 @@
--module(telemetry_srv).
+-module(agent_connection).
 -behaviour(gen_server).
 -define(SERVER, ?MODULE).
 -record(state, {sock, connected}).
@@ -33,11 +33,11 @@ init([]) ->
 handle_call(_Request, _From, State) ->
   {reply, ok, State}.
 
-handle_cast({report, R}, State = #state{connected = false}) ->
-  buffer_srv:buffer(R),
+handle_cast({send, R}, State = #state{connected = false}) ->
+  buffer:add(R),
   {noreply, State};
 
-handle_cast({report,{Command, Args}}, State = #state{connected = true, sock = Socket}) ->
+handle_cast({send,{Command, Args}}, State = #state{connected = true, sock = Socket}) ->
   ok = gen_tcp:send(Socket, serialize_command(Command, Args)),
   ok = gen_tcp:send(Socket, "\n"),
   {noreply, State};
@@ -46,7 +46,7 @@ handle_cast(connect, State = #state{connected = false}) ->
   SocketConfig = [binary, {delay_send, false}, {nodelay, true}, {buffer, 5}, {active, true}],
   case gen_tcp:connect(telemetry:agent_host(), telemetry:agent_port(), SocketConfig) of
     {ok, Sock} ->
-      buffer_srv:retry_all(),
+      buffer:retry_all(),
       {noreply, State#state{sock = Sock, connected = true}};
     _ ->
       {ok, _} = timer:apply_after(1000, gen_server, cast, [?SERVER, connect]),
