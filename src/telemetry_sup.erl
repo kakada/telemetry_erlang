@@ -25,20 +25,20 @@ start_link() ->
 init([]) ->
   ServerSpecs = [
     {
-      agent_connection,
-      {agent_connection, start_link, []},
-      permanent,
-      5000,
-      worker,
-      [agent_connection]
-    },
-    {
       buffer,
       {buffer, start_link, []},
       permanent,
       5000,
       worker,
       [buffer]
+    },
+    {
+      agent_connection,
+      {agent_connection, start_link, []},
+      permanent,
+      5000,
+      worker,
+      [agent_connection]
     }
   ],
   {ok, { {one_for_one, 5, 10}, ServerSpecs} }.
