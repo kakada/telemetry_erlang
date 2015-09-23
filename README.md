@@ -14,7 +14,7 @@ Add the following dependency in `rebar.config`:
 
 ## Usage
 
-Send commands to the agent as using the `telemetry:report/2`, which receives the command name and a list of arguments in [EEP0018 format](https://github.com/davisp/jiffy#data-format). For example:
+Send commands to the agent using the `telemetry:report/2`, which receives the command name and a list of arguments in [EEP0018 format](https://github.com/davisp/jiffy#data-format). For example:
 
 ```erlang
 telemetry:report(counter_add, [
