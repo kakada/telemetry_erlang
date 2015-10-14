@@ -21,4 +21,4 @@ agent_port() ->
   application:get_env(telemetry, agent_port, 8089).
 
 buffer_size() ->
-  application:get_env(telemetry, buffer_size, 10).
+  application:get_env(telemetry, buffer_size, 1000).
